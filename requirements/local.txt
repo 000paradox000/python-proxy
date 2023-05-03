@@ -1,4 +1,4 @@
 -r base.txt
 
-ipython
-pre-commit
+ipython==8.13.1
+pre-commit==3.3.1
