@@ -39,6 +39,41 @@ def index(request_path):
     return response.json()
 
 
+@app.route("/openai/<path:request_path>", methods=["GET", "POST"])
+def openai_proxy(request_path):
+    query_string = request.query_string.decode("utf-8")
+    query_string_dict = dict(request.args)
+
+    openai_api_key = os.environ["OPENAI_API_KEY"]
+    openai_real_url = os.environ["OPENAI_REAL_URL"]
+
+    logging.info(f"Request path: {request_path}")
+    logging.info(f"Query String: {query_string}")
+
+    url = openai_real_url + "/" + request_path
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {openai_api_key}",
+    }
+
+    request_data = request.get_json()
+
+    data = {
+        "prompt": request_data["prompt"],
+    }
+    data.update(request_data["llm_settings"])
+
+    kwargs = {
+        "url": url,
+        "params": query_string_dict,
+        "headers": headers,
+        "json": data,
+    }
+    response = requests.post(**kwargs)
+
+    return response.json()
+
+
 def main():
     """Run the flask application if the main module is invoked directly."""
     print("Running from main")
